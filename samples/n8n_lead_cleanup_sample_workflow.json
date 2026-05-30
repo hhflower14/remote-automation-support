@@ -1,0 +1,87 @@
+{
+  "name": "Sample Lead Cleanup Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { name: ' Alice Lee ', email: 'ALICE@example.com', company: 'Acme HK' } },\n  { json: { name: 'Bob Chan', email: 'bob@example.com ', company: 'Beta Ltd' } },\n  { json: { name: 'Alice Lee', email: 'alice@example.com', company: 'Acme HK' } }\n];"
+      },
+      "id": "sample-input",
+      "name": "Sample Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = new Set();\nconst cleaned = [];\nfor (const item of items) {\n  const row = item.json;\n  const email = String(row.email || '').trim().toLowerCase();\n  if (!email || seen.has(email)) continue;\n  seen.add(email);\n  cleaned.push({\n    json: {\n      name: String(row.name || '').trim(),\n      email,\n      company: String(row.company || '').trim()\n    }\n  });\n}\nreturn cleaned;"
+      },
+      "id": "clean-and-dedupe",
+      "name": "Clean And Dedupe",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { total_clean_leads: items.length, sample_output: items.map(i => i.json) } }];"
+      },
+      "id": "summary",
+      "name": "Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 0]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Sample Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Input": {
+      "main": [
+        [
+          {
+            "node": "Clean And Dedupe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean And Dedupe": {
+      "main": [
+        [
+          {
+            "node": "Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-05-21T00:00:00.000Z",
+  "versionId": "sample"
+}
