@@ -1,115 +1,82 @@
-# 新会话提示词 · 接手「见微 Ziwei Lab」
+# 新会话提示词 · 见微 Ziwei Lab 本轮任务附录
 
-> 用法：在你 Mac 上的 `/Users/andyfang/jianwei-ziwei-lab` 目录开新会话（Claude 桌面应用，或终端里 `claude`），把下面分隔线以下的全部内容粘贴进去。
-> 带 ⚠️ 的地方是你上次消息被截断、我不知道的内容，粘贴前请补上或删掉。
-
----
-
-你正在接手「见微 Ziwei Lab」项目。这是一个紫微斗数教学、确定性排盘、今日节律、关系互动和证据约束解读网站，已经是可以部署的全栈 Demo。
-
-- 项目路径：/Users/andyfang/jianwei-ziwei-lab
-- 公开体验站：https://jianwei.andyterminal.com
-- ChatGPT Site：https://jianwei-ziwei-lab.andyzjenergy.chatgpt.site
-- 预期分支：sprint/plain-language-copy
-- 预期提交：c99bca3 refactor(ui): replace methodology copy with user tasks
-
-## 工作方式（全程遵守）
-
-- 按下面的阶段顺序做，**每个阶段结束停下来向我汇报，等我确认再进入下一阶段**。
-- 汇报只写核对过的事实。没跑的命令、读不到的文件，直接说没跑、读不到，不要推测结果。
-- 阶段 0 和阶段 2、3 只读，不改代码。只有阶段 1 改文档。
-- 不 push、不部署、不改 Cloudflare / D1 配置，除非我明确说可以。
-- 不新增依赖，不升级 Iztro 或其他依赖。
-
-## 硬性边界（来自交接说明，优先级高于一切优化建议）
-
-- 当前版本：引擎 `iztro@2.5.8+jianwei-adapter@0.6.1`，规则 `JIANWEI-ZIWEI-RULES-0.5.1`，预设 `sanhe-iztro-default`、`zhongzhou-iztro-2.5.8`。
-- AI 不参与历法、命宫身宫、宫干、五行局、安星、四化或任何排盘计算。
-- 真实排盘只能走 `packages/ziwei-engine`，业务页面不得直接调用 Iztro。
-- AI 只能把传入的匿名结构化 evidence 转成文字，不得补造 evidence 里没有的星曜、宫位、四化和时间。
-- 不得把真实个人出生资料写进测试 fixtures、日志、analytics 或提交信息。需要样本时只用合成日期。
-- 不新增八字、塔罗、星座等其他体系。
-- 不用更好看的 mock 绕过算法或后端问题。首页示例盘和案例合成盘可以保留，但必须明确标识，并和真实排盘隔离。
-- 核心排盘、历法、AI、安全、关系模块处于受控冻结。要改的话，先按 AGENTS.md 提供：真实复现样本、失败的回归测试、根因分析、最小改动、完整验收。
-- 生产环境的 AI、D1 和加密密钥只能在服务端，不得出现在客户端 bundle。`.env.example` 只放占位符。禁止提交真实密钥，也不要复用历史聊天里出现过的 NVIDIA 或其他 API key。
-- 关系邀请必须保持：双方分别授权；共享证据用 AES-GCM 加密存 D1；token 和撤回凭据只存哈希；24 小时过期；任一方可撤回；撤回或过期后清理加密负载和共享报告；负载不含原始出生信息；不输出缘分百分比或宿命化人格标签。
-- 模型请求里不得出现姓名、完整出生日期、出生地点、手机号、用户 ID、IP。
-
-## 架构速览（交接说明，待阶段 0 核实）
-
-- React 19、TypeScript 5、Next.js App Router 兼容；用 vinext、Vite 和 Cloudflare Vite Plugin 构建，部署到 Cloudflare Workers；Node.js >= 22.13.0。
-- `packages/ziwei-engine` 统一封装 Iztro 2.5.8；`packages/lunar-lite-exact` 和 `lunar-javascript` 负责历法和交节边界。
-- Workers AI：服务端 Binding `AI`，模型 `@cf/qwen/qwen3-30b-a3b-fp8`。D1：Binding `DB`，用于匿名反馈、关系邀请、AI 解释缓存和限流。
-- 页面：`/` `/today` `/chart` `/ask` `/relationship` `/learn` `/cases` `/knowledge` `/profile` `/invite/[token]`。
-- API：`GET /api/health`、`POST /api/interpret`（主 AI 接口）、`POST /api/ask`、`POST /api/feedback`、`POST /api/relationships`、`GET/POST /api/invites/[token]`、`POST /api/invites/[token]/revoke`。
-- 问盘链路：`components/AskExperience.tsx` → `/api/interpret` → `lib/ai/` → Workers AI。超时、模型繁忙、JSON 错误时降级为本地证据答案；页面要如实区分模型、缓存和本地答案；现在还不是真正逐 token 流式输出。
-- 关键目录：`app/` `components/` `packages/ziwei-engine/` `packages/lunar-lite-exact/` `src/modules/{chart,almanac,ask,relationship,learning}/` `lib/ai/` `data/` `testing-fixtures/` `migrations/` `tests/`。
-
-⚠️ 交接说明在「测试与部署命令」处被截断。目前已知的命令只有：`npm install`、`npm run dev`、`npm test`、`npm run lint`、`npm run typecheck`、`npm run test:dev-runtime`。部署命令和其余内容以 `package.json`、AGENTS.md 为准，不要猜。
+> 用法：在 Mac 上进入 `/Users/andyfang/jianwei-ziwei-lab` 开新会话，**先粘贴你的《Claude Code 项目接手提示词：见微 Ziwei Lab》全文，紧接着粘贴本文件分隔线以下的内容**。
+> 交接提示词负责背景和边界，本附录只负责这一轮的任务，二者冲突时以交接提示词和 AGENTS.md 为准。
 
 ---
 
-## 阶段 0：只读核对（不改任何文件）
+## 本轮具体目标
 
-1. 依次阅读：
-   - `AGENTS.md`
-   - `docs/HANDOFF.md`（最后更新于 2026-09-24，分支、提交、测试计数和 Sites 版本已经过时）
-   - `docs/ziwei-rule-spec.md`
-   - 原始 PRD：`/Users/andyfang/Library/Containers/com.tencent.qq/Data/Downloads/Jianwei-Ziwei-Lab-PRD(1).md`。读不到就直接说读不到，不要猜它写了什么。
-2. 运行并贴出原始输出：
-   - `git status --short`
-   - `git branch --show-current`
-   - `git log -1 --oneline`
-   - `node -v`
-3. 如果没有 `node_modules`，先运行 `npm install`（不要改 lockfile；如果 lockfile 被改了，告诉我）。然后依次运行，记录每项的通过数、失败数和耗时：
-   - `npm test`
-   - `npm run lint`
-   - `npm run typecheck`
-   - `npm run test:dev-runtime`
-4. 不跑网络请求的前提下，核对代码里的这些值和交接说明是否一致：引擎和规则版本号、两个预设名、Workers AI 模型名、D1 / AI Binding 名（看 wrangler 配置）、Node 版本要求。
-5. 列出 `package.json` 里所有 scripts，特别标出部署相关的（只列，不执行）。
+这一轮只做「接手核对 + 交接文档刷新 + 两份只读评估报告」，不开发新功能、不修改排盘 / 历法 / AI / 安全 / 关系模块、不部署。分四个阶段，**每个阶段结束停下来汇报，等我回复「继续」再进入下一阶段**。
 
-**阶段 0 汇报格式**：
-- 一张表：交接说明写的 vs 实际看到的 vs 是否一致；
-- 测试结果表；
-- AGENTS.md 里规定的修改流程和冻结范围（摘要）；
-- PRD 能否读到，能读到就给出它和当前实现的主要差异（最多 10 条）；
-- 发现的异常或风险。
+全程额外约束：
+- 不 push，不运行 `deploy:cf:prepare`、`wrangler deploy` 或任何 Sites 发布命令。
+- 不新增或升级依赖；如果 `npm install` 改动了 lockfile，告诉我并还原。
+- 汇报只写实际看到的输出；没跑、读不到、查不到的写明「未执行 / 读不到 / 未核实」。
+- 交接提示词里的历史数据（2026-09-27 的 194 / 41 / 1 项测试，`public-demo-15`，Site 版本 55）只能用于对比，不能当作当前结果。
 
-## 阶段 1：更新交接文档（等我确认后再做）
+## 阶段 0：接手核对（只读）
 
-- 只改 `docs/HANDOFF.md`：把分支、提交、测试计数、版本号、页面和 API 列表更新成阶段 0 核实过的事实，并写上「最后核对日期」。
-- Sites 版本、线上部署版本如果本地查不到，就写「未核实」，不要编。
-- 在当前分支单独做一个文档提交，提交信息里不要出现任何出生资料。先给我看 diff，我同意后再提交；不要 push。
+1. 按交接提示词「开始前必须阅读」读完文档；PRD 读不到就说明，不要猜内容。
+2. 运行并贴出原始输出：`git status --short --branch`、`git branch --show-current`、`git log -1 --oneline`、`node -v`。如果分支或提交与 `sprint/plain-language-copy` / `c99bca3` 不一致，或工作区不干净，先停下来问我。
+3. 运行 `npm test`、`npm run lint`、`npm run typecheck`、`npm run test:dev-runtime`，记录每项的通过数、失败数和耗时，并和 2026-09-27 的历史结果对比。`IMPORT_IS_UNDEFINED` 提示是否还在，也要记录。
+4. 只读线上检查：`curl -sS https://jianwei.andyterminal.com/api/health`。如果返回里有版本或 release 信息，和本地代码对比，判断线上是否落后于 `c99bca3`。不要访问需要登录的 ChatGPT Site 后台。
+5. 对照代码核实：引擎和规则版本、两个 preset、模型名和生成参数（temperature、max tokens、超时、重试、缓存 TTL）、Binding 名、三个 D1 迁移文件、`package.json` 里的 scripts。
 
-## 阶段 2：对照开源项目 ziwei-doushu 做差距评估（只读，产出报告）
+汇报格式：
+- 一张对照表：交接写的 / 实际看到的 / 是否一致；
+- 测试结果表，含与历史结果的差异；
+- 线上和本地是否一致；
+- 发现的问题和风险，按 P0 / P1 / P2 排序。
 
-参考项目：https://github.com/Renhuai123/ziwei-doushu（代码 MIT；数据集 CC BY 4.0，必须标注来源；`docs/tianji-ziwei/` 下的倪海厦原话是 CC BY-NC-SA 4.0，不能商用）。它和见微一样基于 iztro 2.5.x，已有一套回归测试可以拿来对照。
+## 阶段 1：刷新交接文档（只改文档）
 
-请 clone 到项目目录之外（例如 `~/tmp/ziwei-doushu`），不要把它的代码或数据复制进见微仓库，然后在见微里写报告 `docs/research/ziwei-doushu-gap.md`，包含：
+- 新建分支 `sprint/handoff-refresh`，基于当前提交，不要动 `sprint/plain-language-copy`。
+- 只更新 `docs/HANDOFF.md`：
+  - 把分支、提交、测试计数、版本号、页面和 API 列表、部署流程、已知限制，按阶段 0 核实的事实写清楚；
+  - 写上「最后核对日期」；
+  - 线上 release 和 Site 版本查不到就写「未核实」。
+- 先给我看 diff，我同意后再提交。提交信息里不得出现出生资料或密钥。
 
-1. **回归测试覆盖对照**。对方的测试主题有：紫微安星铁律（768 盘）、1986–1991 中国夏令时、钟表时间平移、晚子时 / 早子时换日、立春四柱边界、红鸾天喜、iztro 时辰序号 0–11 边界、不存在的公历日期（2 月 30 日等）、性别校验、同宫双四化、闰月口径、真太阳时和均时差、十二神煞。逐项写见微是否已有对应测试（给出测试文件路径），没有的写建议新增的测试，样本只用合成日期。
-2. **口径差异**。重点看：星曜亮度（对方不用 iztro 自带的亮度，而是自建流派表）、闰月归属（对方默认「月中分界」split）、晚子时换日策略、真太阳时。逐项说明见微当前用的是哪种口径、写在哪里，以及差异会不会让同一个输入排出不同的盘。
-3. **交叉校验建议**。设计一个只在本地跑的脚本方案：用合成日期批量对比两边的命宫、身宫、五行局、十四主星位置和生年四化，输出差异统计。这一阶段只写方案，不实现。
-4. **可借鉴但受冻结约束的点**。例如对方 `patterns.ts` 的格局规则库能不能作为见微 evidence 的来源。每一条都要说明会碰到哪个冻结模块、需要走 AGENTS.md 的哪些步骤。
-5. **不建议采用的点**，并写明原因。至少包括：
-   - 对方的 v4.0 解读数据集不是见微引擎产生的 evidence，不能喂给 AI 当证据；
-   - 数据集里每张盘平均有约 44 处倪海厦原话引用，不能商用；
-   - 数据集里的健康、六亲类断语不适合直接展示。
+## 阶段 2：对照开源项目 ziwei-doushu 的差距评估（只读，写报告）
 
-## 阶段 3：上线与合规自查（只读，产出清单）
+参考项目 https://github.com/Renhuai123/ziwei-doushu ，许可情况：
+- 代码 MIT；
+- 数据集 CC BY 4.0，使用须标注来源；
+- `docs/tianji-ziwei/` 下的倪海厦原话为 CC BY-NC-SA 4.0，不可商用。
 
-写 `docs/research/compliance-checklist.md`，逐条标注 ✅ / ❌ / 未确认，并给出代码位置：
+它和见微一样基于 iztro 2.5.x。
 
-- AI 生成内容是否有用户一眼能看到的显式标识（《人工智能生成合成内容标识办法》2025-09-01 起施行），包括分享内容；
-- 是否有「文化学习 / 娱乐参考，不构成预测或建议」类声明，以及出现在哪些页面；
-- 文案和 AI 输出里有没有：转运、改运、化解、招财、旺财、逢凶化吉、注定、必然，以及疾病、寿命、灾祸、离婚类结论；`lib/ai/` 的输出校验有没有拦截这些；
-- 健康、父母、子女类内容的展示方式；
-- 出生资料是否只存在本地；模型请求、日志和 analytics 里是否可能混入敏感字段（抽查代码路径，不要用真实数据测试）；
-- 客户端 bundle 里有没有密钥或服务端 Binding 泄露（构建后搜索产物；只有当构建命令不会触发部署时才执行，拿不准就先问我）；
-- 关系邀请的 9 条约束是否都有对应测试；
-- 用到第三方开源代码或数据的地方，是否保留了许可声明和来源标注。
+把它 clone 到项目目录之外（如 `~/tmp/ziwei-doushu`），不要复制它的代码或数据进见微仓库，也不要运行它的安装脚本以外的东西。在见微的新分支上写 `docs/research/ziwei-doushu-gap.md`：
 
-每个阶段完成后都停下来，等我回复。
+1. **回归测试覆盖对照**。对方测试主题：紫微安星铁律（768 盘）、1986–1991 中国夏令时、钟表时间平移、晚子时 / 早子时换日、立春四柱边界、红鸾天喜、iztro 时辰序号 0–11 边界、不存在的公历日期、性别校验、同宫双四化、闰月口径、真太阳时与均时差、十二神煞。逐项写见微有没有对应测试（给出文件路径），没有的写出建议新增的测试，样本只用合成日期。
+2. **口径差异**：
+   - 星曜亮度：对方不用 iztro 自带亮度，自建流派表；
+   - 闰月归属：对方默认「月中分界」；
+   - 晚子时换日策略；
+   - 真太阳时。
 
-⚠️ 这里补上本轮的具体目标（如果有）：例如「之后要做小红书引流的免费测试页」「准备上线收费」「只做稳定性」。没写就只做以上四个阶段。
+   逐项写清见微两个 preset 各用哪种口径、代码在哪，以及同一输入会不会排出不同的盘。
+3. **交叉校验方案**：只写方案，不实现。用合成日期批量对比两边的命宫、身宫、五行局、十四主星位置、生年四化，输出差异统计。说明它如何满足交接里「100 张匿名回归盘」和各边界检查的要求。
+4. **可借鉴但受冻结约束的点**，比如对方 `patterns.ts` 的格局规则库能否成为见微 evidence 的来源。每条注明涉及哪个冻结模块、需要走 AGENTS.md 五项门禁里的哪些步骤。
+5. **不建议采用的点**及原因，至少包括：
+   - 对方的 v4.0 解读数据集不是见微引擎产生的 evidence，不能给 AI 当证据；
+   - 数据集里每张盘平均约 44 处倪海厦原话引用，不能商用；
+   - 健康和六亲类断语不适合直接展示。
+
+## 阶段 3：上线合规自查（只读，写清单）
+
+写 `docs/research/compliance-checklist.md`，每条标 ✅ / ❌ / 未确认，并附代码位置或测试路径：
+
+- AI 生成内容是否有用户能直接看到的显式标识（《人工智能生成合成内容标识办法》2025-09-01 起施行），包括 AI / 缓存 / 本地降级三种状态的标示，以及导出和分享的内容；
+- 「文化学习 / 仅供参考，不构成预测或建议」类声明，出现在哪些页面；
+- `data/` 里的文案和 `lib/ai/` 的输出校验，能否拦截以下说法：转运、改运、化解、招财、旺财、逢凶化吉、注定、必然，以及疾病、寿命、灾祸、离婚类结论；
+- 出生资料只存在本地；模型请求、服务端日志、analytics 有没有可能混入敏感字段（只做代码路径审查，不用真实数据测试）；
+- 客户端 bundle 有没有密钥或服务端 Binding 泄露：只检查 `npm test` 已经产生的构建产物，不额外运行部署准备命令；
+- 关系邀请的约束（加密、哈希、24 小时过期、撤回、清理、不传原始生辰、不输出缘分百分比）是否各有对应测试；
+- 用到 Iztro、lunar-javascript 等第三方代码或数据的地方，许可声明是否齐全；
+- `artifacts/screenshots/`、`public/screenshots/` 里哪些截图明显早于当前 UI（只列出，不重新截图）。
+
+阶段 2、3 的两份报告可以和阶段 1 放在同一个 `sprint/handoff-refresh` 分支，各自单独提交，同样先给我看 diff 再提交。
+
+四个阶段完成后，给出一份「下一轮候选任务」清单，按 P0 / P1 / P2 排序，每条写明涉及的模块，以及是否触发冻结门禁。由我来挑，不要自己开始做。
